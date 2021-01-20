@@ -23,11 +23,58 @@ Since the rendering of such large images is extremely demanding, optimization of
 
 The data collected during the initial rendering can be analysed to view the performance of each type of GPU card in order to decide on the optimal cards for the task, as well as revealing which GPUs seem to be unsuitable for the task. The data can be manipulated to allow easy comparison of GPU performance, followed by dimensionality reduction techniques and clustering to separate the desirable and undesirable GPU cards.
 
+The tools used in the project were Rstudio and Rmarkdown combined with various packages (see config file for details on packages). ProjectTemplate was used to organise and link the files, and Git/Github was used for version control.
+
 ## Data Understanding
 
-The data was downloaded directly from the Newcastle data science student projects GitHub repository, which is a private repository. The data comprises 3 large datasets: 'application.checkpoints', 'gpu' and 'task.x.y'. The shape of this data is shown below:
+The data was downloaded directly from the Newcastle data science student projects GitHub repository, which is a private repository. The data comprises 3 large datasets: `application.checkpoints`, `gpu` and `task.x.y`. The shape of this data is shown below:
+
+```{r}
+dim(application.checkpoints)
+dim(gpu)
+dim(task.x.y)
+```
+It's clear that the data is very large, with over 650 thousand observation in the `application.checkpoints` dataset across 6 variables, over 1.5 million observations in the `gpu` dataset across 8 variables, and over 65 thousand observations across 5 variables in the `task.x.y` dataset. Each dataset is summarised below:
+
+### application.checkpoints 
+The `application.checkpoints` data is a comprehensive record of timestamped checkpoint events from the rendering process, with one timestamped entry for the start of the event and one for the end. The checkpoint events are as follows (taken from the `eventName` column):
+  + `TotalRender`: entire rendering task (excluding tiling)
+  + `Render`: rendering of image tile
+  + `Saving Config`: configuration overhead
+  + `Uploading`: uploading of output to Azure Blob Storage
+  + `Tiling`: post processing of rendered tile
+  
+```{r head_appplication.checkpoints}
+#printing head of application checkpoint data
+head(application.checkpoints)
+```
+
+### gpu 
+The `gpu` data comprises periodical recording of status of the GPU on each virtual machine. Recorded GPU metrics are as below, which are paired with the timestamp of the measurement, the hostname of the virtual machine, the GPU card serial number and the system ID assigned to the GPU card:
+  + `powerDrawWatt`: power draw of the GPU card in Watts
+  + `gpuTempC`: temperature of GPU in Celsius at specified timestamp
+  + `gpuUtilPerc`: utilisation of the GPU **core/s** (%)
+  + `gpuMemUtilPerc`: utilisation of the GPU **memory** (%)
+
+```{r head_gpu}
+#printing head of gpu data
+head(gpu)
+```
+
+### task.x.y
+the x and y coordinates of the section of image being rendered for each task. `level` represents the zoom level, of the 12 zoom levels of the visualisation.
+
+```{r head_task.x.y}
+#printing head of task.x.y data
+head(task.x.y)
+```
+
+Each dataset was visualised with the `naniar` library, using `vis_miss` to quickly get an overview of any missing values. None were present in any of the datasets and so the visualisations were omitted from this report. This lack of missing data is likely because the data is mostly machine collected measurements and so the data was consistently recorded.
 
 
+## Data Preparation
+
+Each event type was separated from `application.checkpoints` and grouped by task ID (one group per stop and start of each task). These paired start and stop times were then converted to the duration of each task by finding the absolute difference between the two timestamps in each pair using `difftime`. This resulted in 5 new dataframes, one for each event type previously listed under `eventName`. These new dataframes were then joined by `taskId` and `hostname` to create a dataset containing a dataframe containing the runtime breakdowns for each event of each rendering task. It's clear from summing the individual event runtimes for a sample of tasks that `TotalRender` comprises all events except for `Tiling`, which is useful to know for later analysis.
 
 ```{r Histograms, echo=FALSE, message=FALSE}
 plt_power = ggplot(gpu_performance, aes(x=mean_powerDrawWatt)) + 
