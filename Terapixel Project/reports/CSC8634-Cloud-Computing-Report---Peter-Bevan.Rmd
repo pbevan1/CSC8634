@@ -1,0 +1,82 @@
+---
+title: "CSC8634 Cloud Computing Report"
+author: "Peter Bevan"
+date: "18/01/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir= normalizePath('..'))
+```
+
+```{r load project, include=FALSE}
+library(ProjectTemplate)
+load.project()
+```
+
+## Business Understanding
+
+This report documents an exploratory data analysis of application checkpoint and system metric output data collected during the rendering of a 3d terapixel image of the city of Newcastle, UK. A terapixel is defined as 10^12 pixels (1,000,000 megapixels), and so are extremely large images and therefore very computationally costly to produce. A path tracing renderer coupled with a scalable public cloud supercomputing architecture was successfully used to render the terapixel image in under a day using 1024 public cloud GPU nodes. The completed terapixel image is accessible for users to explore the city in 3D with zoomable scales ranging from a complete overview to minute detail.
+
+Since the rendering of such large images is extremely demanding, optimization of the architecture and process is essential for keeping the time frames manageable. Since the rendering is carried out on the public cloud on a pay as you go basis, this optimization also helps to keep costs down, especially if continuous updating of the visualization is to take place. One way to increase the rendering speed is to select the specific GPU cards which perform best for the required task.
+
+The data collected during the initial rendering can be analysed to view the performance of each type of GPU card in order to decide on the optimal cards for the task, as well as revealing which GPUs seem to be unsuitable for the task. The data can be manipulated to allow easy comparison of GPU performance, followed by dimensionality reduction techniques and clustering to separate the desirable and undesirable GPU cards.
+
+## Data Understanding
+
+The data was downloaded directly from the Newcastle data science student projects GitHub repository, which is a private repository. The data comprises 3 large datasets: 'application.checkpoints', 'gpu' and 'task.x.y'. The shape of this data is shown below:
+
+
+
+```{r Histograms, echo=FALSE, message=FALSE}
+plt_power = ggplot(gpu_performance, aes(x=mean_powerDrawWatt)) + 
+  geom_histogram(color='white') + xlab('Mean power draw of GPU (Watts)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plt_temp = ggplot(gpu_performance, aes(x=mean_gpuTempC)) + 
+    geom_histogram(color='white', binwidth=0.5) + xlab('Mean temp of GPU (C)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+#Clearly multimodal (different classes of GPU??)
+plt_utilPerc = ggplot(gpu_performance, aes(x=mean_gpuUtilPerc)) + 
+    geom_histogram(color='white') + xlab('Mean utilisation of GPU Core(s) (%)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plt_memUtilPerc = ggplot(gpu_performance, aes(x=mean_gpuMemUtilPerc)) + 
+    geom_histogram(color='white') + xlab('Mean utilisation of GPU memory (%)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+#multimodal as well - pull out lower group
+plt_TotalRender = ggplot(gpu_performance, aes(x=mean_TotalRender)) + 
+    geom_histogram(color='red') + xlab('Mean duration of total render task (s)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plt_Tiling = ggplot(gpu_performance, aes(x=mean_Tiling)) + 
+    geom_histogram(color='red', binwidth=0.01) + xlab('Mean duration of tiling (s)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plt_SavingConfig = ggplot(gpu_performance, aes(x=mean_SavingConfig)) + 
+    geom_histogram(color='red', binwidth=0.0001) + xlab('Mean duration of configuration overhead (s)') +
+  theme(plot.title = element_text(hjust = 0.5)) + theme(text = element_text(size=10))
+
+plt_Render = ggplot(gpu_performance, aes(x=mean_Render)) + 
+    geom_histogram(color='red', binwidth=0.5) + xlab('Mean duration of tiling (s)') +
+  theme(plot.title = element_text(hjust = 0.5))
+
+plt_Uploading = ggplot(gpu_performance, aes(x=mean_Uploading)) + 
+    geom_histogram(color='red', binwidth=0.03) + xlab('Mean duration of tiling (s)') +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+```{r rendergrid, echo=FALSE, message=FALSE}
+grid.arrange(plt_TotalRender, plt_Tiling, plt_SavingConfig, plt_Render, plt_Uploading, nrow = 3)
+```
+
+```{r gpugrid, echo=FALSE, message=FALSE}
+grid.arrange(plt_power, plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 3)
+```
+
+# References
+http://www.gigamacro.com/worlds-first-terapixel-macro-image/
