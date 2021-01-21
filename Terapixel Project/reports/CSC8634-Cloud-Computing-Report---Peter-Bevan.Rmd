@@ -76,6 +76,8 @@ Each dataset was visualised with the `naniar` library, using `vis_miss` to quick
 
 Each event type was separated from `application.checkpoints` and grouped by task ID (one group per stop and start of each task). These paired start and stop times were then converted to the duration of each task by finding the absolute difference between the two timestamps in each pair using `difftime`. This resulted in 5 new dataframes, one for each event type previously listed under `eventName`. These new dataframes were then joined by `taskId` and `hostname` to create a dataset containing a dataframe containing the runtime breakdowns for each event of each rendering task. It's clear from summing the individual event runtimes for a sample of tasks that `TotalRender` comprises all events except for `Tiling`, which is useful to know for later analysis.
 
+Geometric mean used to summarise the percentage utilisation of the GPU memory and core(s) since these are ratios and we have no access to the costs that these ratios are based on. (Hoefler 2015)
+
 ```{r Histograms, echo=FALSE, message=FALSE}
 plt_power = ggplot(gpu_performance, aes(x=mean_powerDrawWatt)) + 
   geom_histogram(color='white') + xlab('Mean power draw of GPU (Watts)') +
@@ -125,5 +127,20 @@ grid.arrange(plt_TotalRender, plt_Tiling, plt_SavingConfig, plt_Render, plt_Uplo
 grid.arrange(plt_power, plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 3)
 ```
 
+The correlation matrix below was computed to visualise the correlation and investigate the relationships between pairs of variables in the newly constructed `gpu_performance` dataset. Since there are so many overlapping observations, the transparency of the points was increased to highlight areas of overlapping points and better highlight trends. It's easy to notice even in these pairwise plots there is often distinct groups of GPUs.
+Obvious positive linear relationships can be seen between `mean_gpuMemUtilPerc` and `mean_gpuUtilPerc` as well as between `mean_TotalRender` and `mean_Render`. There are also other potential linear relationships between other variables but it is harder to tell without further investigation. These linear relationships between at least some variables indicates that there is a chance the variables are not providing independent
+information. This in turn means we may be able to reduce the dimensionality of the data without losing too much of
+the total variation. Principle component analysis (PCA) will be carried out on the data to reduce it's dimensionality.
+
+Since there are no target/response variables in the data, we can use an unsupervised learning technique to group the data into clusters. K-means clustering was selected since the clusters look to be highly spherical, which k-means are know to be able to differentiate well.
+
+```{r}
+pairs(gpu_performance[,-c(1:3)], col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1))
+```
+
+
 # References
 http://www.gigamacro.com/worlds-first-terapixel-macro-image/
+hoefler scientific benchmarking
+Joe mattews statistical learning
+https://www.geeksforgeeks.org/difference-between-k-means-and-hierarchical-clustering/#:~:text=A%20hierarchical%20clustering%20is%20a,the%20clusters%20is%20hyper%20spherical.
