@@ -1,7 +1,7 @@
 head(gpu_performance)
 
 
-pairs(gpu_performance, col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1))
+pairs(gpu_performance_12[,-6], col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1))
 
 gpu_grid = grid.arrange(plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 2)
 
@@ -25,8 +25,7 @@ pca_gpu_perf$rotation[,c(1:2)]
 
 
 
-#kmeans function with K=2 as identified by above plot
-km_2 = kmeans(gpu_performance_12[,-6], 2, iter.max=50, nstart=20)
+
 #kmeans function with K=2 as identified by above plot
 km_4 = kmeans(gpu_performance_12, 4, iter.max=50, nstart=20)
 
@@ -49,6 +48,7 @@ km_4 = kmeans(gpu_performance_12, 4, iter.max=50, nstart=20)
 #examining the structure of the object
 str(km_4)
 
+#taking three random samples based on GPU serial number
 hostname_sample_1 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
 hostname_sample_2 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
 hostname_sample_3 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
@@ -74,3 +74,5 @@ pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
 ## different colours (col) and plotting characters (pch) for each cluster:
 plot(pca_gpu_perf$x[,1], pca_gpu_perf$x[,2], main="Cluster solutions in ISLR data in space of first two PCs", xlab="First PC", ylab="Second PC",
      col=km_4$cluster, pch=km_4$cluster)
+
+tail(gpu_performance_12[order(gpu_performance_12$mean_TotalRender_IncTil),],10)

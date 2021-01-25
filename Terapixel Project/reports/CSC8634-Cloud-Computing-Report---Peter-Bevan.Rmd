@@ -15,6 +15,12 @@ library(ProjectTemplate)
 load.project()
 ```
 
+
+```{r, echo=FALSE, fig.cap="Terapixel Rendering of Newcastle upon Tyne", out.width = '100%', fig.align='center'}
+knitr::include_graphics(here("Terapixel Project/graphs/ncl2.png"))
+```
+
+
 ## Business Understanding
 
 This report documents an exploratory data analysis of application checkpoint and system metric output data collected during the rendering of a 3d terapixel image of the city of Newcastle, UK. A terapixel is defined as 10^12 pixels (1,000,000 megapixels), and so are extremely large images and therefore very computationally costly to produce. A path tracing renderer coupled with a scalable public cloud supercomputing architecture was successfully used to render the terapixel image in under a day using 1024 public cloud GPU nodes. The completed terapixel image is accessible for users to explore the city in 3D with zoomable scales ranging from a complete overview to minute detail.
@@ -29,7 +35,7 @@ The tools used in the project were Rstudio and Rmarkdown combined with various p
 
 The data was downloaded directly from the Newcastle data science student projects GitHub repository, which is a private repository. The data comprises 3 large datasets: `application.checkpoints`, `gpu` and `task.x.y`. The shape of this data is shown below:
 
-```{r}
+```{r dim}
 dim(application.checkpoints)
 dim(gpu)
 dim(task.x.y)
@@ -38,11 +44,11 @@ It's clear that the data is very large, with over 650 thousand observation in th
 
 ### application.checkpoints 
 The `application.checkpoints` data is a comprehensive record of timestamped checkpoint events from the rendering process, with one timestamped entry for the start of the event and one for the end. The checkpoint events are as follows (taken from the `eventName` column):
-  + `TotalRender`: entire rendering task (excluding tiling)
-  + `Render`: rendering of image tile
-  + `Saving Config`: configuration overhead
-  + `Uploading`: uploading of output to Azure Blob Storage
-  + `Tiling`: post processing of rendered tile
+* `TotalRender`: entire rendering task (excluding tiling)
+* `Render`: rendering of image tile
+* `Saving Config`: configuration overhead
+* `Uploading`: uploading of output to Azure Blob Storage
+* `Tiling`: post processing of rendered tile
   
 ```{r head_appplication.checkpoints}
 #printing head of application checkpoint data
@@ -80,7 +86,7 @@ The `task.x.y` data was merged with the runtime data described above by `taskId`
 
 There are 1024 different hostnames, which means 1024 different GPUs. It can be seen after filtering by level and grouping by hostname that all 1024 virtual machines in the dataset has carried out rendering on level 12, with 256 of these also rendering on level 8 and only one rendering on level 4. The sum total of the duration of the rendering for each task and level, was calculated and is shown below. This shows that the vast majority of the computing is done rendering level 12. The avenue of most value is likely in focusing analysis on this with the hope of generating insights that lead to optimisation which could reduce the time/money/energy spent in the future. The remainder of the analysis in this report focuses solely on level 12 rendering, choosing to omit the level 4 and 8 with the aim of keeping the data comparable for analysis.
 
-```{r, out.extra='angle=90'}
+```{r render totals, echo=FALSE}
 str_glue('Summed total render runtime for level 12 accross all parallel GPUs: {as.numeric(sum(Runtimes_12$TotalRender_IncTil))/60/60} hours')
 str_glue('Summed total render runtime for level 8 accross all parallel GPUs: {as.numeric(sum(Runtimes_8$TotalRender_IncTil))/60/60} hours')
 str_glue('Summed total render runtime for level 4 accross all parallel GPUs: {as.numeric(sum(Runtimes_4$TotalRender_IncTil))/60/60} hours')
@@ -88,7 +94,7 @@ str_glue('Summed total render runtime for level 4 accross all parallel GPUs: {as
 
 Summary data showing mean values for each gpu based on the `gpu` and `Runtimes` data were calculated and stored separately for each level. The arithmetic mean was used to calculate cost values whereas the Geometric mean was used to summarise the percentage utilisation of the GPU memory and core(s) since these are ratios and we have no access to the costs that these ratios are based on. (Hoefler 2015) Since both of these summaries boiled the data down to one entry per gpu, they were then easily merged to create the `gpu_performance`. The head of this final dataset is shown below, noting that there is 1024 observations (1 per GPU node):
 
-```{r, echo=FALSE}
+```{r gpu_performance_12}
 head(gpu_performance_12)
 ```
 
@@ -116,41 +122,38 @@ plt_memUtilPerc = ggplot(gpu_performance_12, aes(x=mean_gpuMemUtilPerc)) +
 
 #multimodal as well - pull out lower group
 plt_TotalRender_IncTile = ggplot(gpu_performance_12, aes(x=mean_TotalRender_IncTil)) + 
-    geom_histogram(color='red') + xlab('Mean duration of total render task (seconds)') +
+    geom_histogram(color="#D55E00") + xlab('Mean duration of total render task (seconds)') +
   theme(plot.title = element_text(hjust = 0.5))
 
 plt_Tiling = ggplot(gpu_performance_12, aes(x=mean_Tiling)) + 
-    geom_histogram(color='red', binwidth=0.01) + xlab('Mean duration of tiling (seconds)') +
+    geom_histogram(color="#F0E442", binwidth=0.01) + xlab('Mean duration of tiling (seconds)') +
   theme(plot.title = element_text(hjust = 0.5))
 
 plt_SavingConfig = ggplot(gpu_performance_12, aes(x=mean_SavingConfig)) + 
-    geom_histogram(color='red', binwidth=0.0001) + xlab('Mean duration of configuration overhead (seconds)') +
+    geom_histogram(color="#56B4E9", binwidth=0.0001) + xlab('Mean duration of configuration overhead (seconds)') +
   theme(plot.title = element_text(hjust = 0.5)) + theme(text = element_text(size=10))
 
 plt_Render = ggplot(gpu_performance_12, aes(x=mean_Render)) + 
-    geom_histogram(color='red', binwidth=0.5) + xlab('Mean duration of rendering (seconds)') +
+    geom_histogram(color="#009E73", binwidth=0.5) + xlab('Mean duration of rendering (seconds)') +
   theme(plot.title = element_text(hjust = 0.5))
 
 plt_Uploading = ggplot(gpu_performance_12, aes(x=mean_Uploading)) + 
-    geom_histogram(color='red', binwidth=0.03) + xlab('Mean duration of uploading (seconds)') +
+    geom_histogram(color="#0072B2", binwidth=0.03) + xlab('Mean duration of uploading (seconds)') +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Histograms were plotted to explore the distributions of each variable and displayed on separate grids for rendering durations and gpu data. There is an interesting bimodal distribution for the `mean_TotalRenderIncTil` variable, as well as for `mean_Render`. This may be suggesting that there are two different types of GPU which are rendering at different speeds, which is then affecting the total render time. Further exploration is needed to confirm this suggestion. Mean tiling time and mean configuration overhead look to be following roughly normal distributions, with a small amount of outliers. Mean uploading duration is multimodal with three distinct peaks suggesting thsat the gpus can be separated into three groups based on uploading speed.
+Histograms were plotted to explore the distributions of each variable and displayed on separate grids for rendering durations and gpu data. There is an interesting bi-modal distribution for the `mean_TotalRenderIncTil` variable, as well as for `mean_Render`. This may be suggesting that there are an equal number of two different types of GPU which are rendering at different speeds, which is then affecting the total render time. There looks to be equal numbers of gpu's in each group judging by the size and shape of the distributions about each mode, potentially pointing towards the gpu's used being half one type and half another. Further exploration is needed to confirm this suggestion.
+Mean tiling time and mean configuration overhead look to be following roughly normal distributions, with a small number of outliers. Mean uploading duration is multimodal with three distinct peaks suggesting that the gpus can be separated into three groups based on uploading speed.
 
-```{r rendergrid, echo=FALSE, message=FALSE}
+```{r rendergrid, echo=FALSE, message=FALSE, fig.cap='Rendering event histograms'}
 grid.arrange(plt_TotalRender_IncTile, plt_Tiling, plt_SavingConfig, plt_Render, plt_Uploading, nrow = 3)
 ```
 
-```{r gpugrid, echo=FALSE, message=FALSE}
-grid.arrange(plt_power, plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 2)
-```
+The proportion of the total render time spent on each task was visualised in a pie chart to get a better understanding of what event types the GPUs are spending most time completing. This knowledge could be very useful when looking at speeding up the whole process as it may indicate an area that has most room for improvement. Rendering took up the vast majority of the total task runtimes, as shown in the pie chart, with just under 95% of the total runtime. Speeding up the rendering time by just a few percent would have a dramatic effect on the overall runtime of the process. On the contrary, the configuration overhead is so small (0.01% of total runtime) that it is not visible on the pie chart and so it's probably not worth spending too much time attempting to speed up this process (benefits likely small). A colourblind friendly palette was used, based on the codes provided by M.Okabe and K.Ito from Tokyo University in 2002. These colours have contrasting luminance and so are more easily distinguished by colourblind people than the default ggplot colours.
 
-The proportion of the total render time spent on each task was visualised in a pie chart to get a better understanding of what event types the GPUs are spending most time completing. This knowledge could be very useful when looking at speeding up the whole process as it may indicate an area that has room for imporvement. Rendering took up the vast majority of the total task runtimes, as shown in the pie chart, with just under 95% of the total runtime. Speeding up the rendering time by just a few percent would have a dramatic effect on the overall runtime of the process. On the contrary, the configuration overhead is so small (0.01% of total runtime) that it is not visible on the pie chart and so it's probably not worth spending too much time attempting to speed up this process due to the benefits likely being small. A colourblind friendly palette was used, based on the codes provided by M.Okabe and K.Ito from Tokyo University in 2002. These colours have contrasting luminance and so are more easily distinguished by colour blind people than the default ggplot colours.
-
-```{r}
+```{r pie, echo=FALSE, fig.cap='Proportions of task runtimes per event'}
 ggplot(data = Runtime_Totals[c(1:4),], aes(x = "", y = Totals, fill = Event)) + 
-  geom_bar(width=1, size=1, stat = "identity", color="white") +
+  geom_bar(width=1, size=1, stat = "identity", color="#D55E00") +
   labs(x = NULL, y = NULL, title = 'proportions of task runtimes per event') +
   coord_polar(theta = "y") +
   theme_minimal() +
@@ -162,16 +165,27 @@ ggplot(data = Runtime_Totals[c(1:4),], aes(x = "", y = Totals, fill = Event)) +
 ```
 
 
-The correlation matrix below was computed to visualise the correlation and investigate the relationships between pairs of variables in the newly constructed `gpu_performance` datasets. Since there are so many overlapping observations, the transparency of the points was increased to highlight areas of overlapping points and better highlight trends. It's easy to notice even in these pairwise plots there is often distinct groups of GPUs.
-Obvious positive linear relationships can be seen between `mean_gpuMemUtilPerc` and `mean_gpuUtilPerc` as well as between `mean_TotalRender` and `mean_Render`. There are also other potential linear relationships between other variables but it is harder to tell without further investigation. These linear relationships between at least some variables indicates that there is a chance the variables are not providing independent
-information. This in turn means we may be able to reduce the dimensionality of the data without losing too much of
-the total variation. Principle component analysis (PCA) will be carried out on the data to reduce it's dimensionality.
 
-Since there are no target/response variables in the data, we can use an unsupervised learning technique to group the data into clusters. K-means clustering was selected since the clusters look to be highly spherical, which k-means are known to be able to differentiate well.
+The histogram for mean power draw of the GPUs looks to have a roughly normal distribution with almost all observations falling between 80W and 100W, with a very small number of outliers above 100W. Mean temperature of the GPUs looks to have a right skewed normal distribution. Both mean utilisation of GPU cores and mean utilisation of GPU memory exhibit a similar bi-modal distribution as mentioned above, with similar numbers of GPUs falling into distributions around the two modes. One possible explanation is that some of the GPUs, for whatever reason, are utilising more of their memory and core(s), and this group as a result are producing faster rendering. In this case, one possible solution could be experimenting with optimisation in blender to try and get consistent/higher GPU utilisation. One possible tweak that could be made is adjusting the tile size to see if performance can be enhanced.
+
+```{r gpugrid, echo=FALSE, message=FALSE, fig.cap='GPU metric histograms'}
+grid.arrange(plt_power, plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 2)
+```
+
+
+The correlation matrix below was computed to visualise the correlation between pairs of variables in the newly constructed `gpu_performance` datasets. Since there are so many overlapping points, the transparency of the points was increased to highlight areas of overlapping points and better highlight trends. It's easy to notice even in these pairwise plots there is often distinct groups of GPUs.
+Obvious positive linear relationships can be seen between `mean_gpuMemUtilPerc` and `mean_gpuUtilPerc` as well as between `mean_TotalRender` and `mean_Render`. There are also other potential linear relationships between other variables but it is harder to tell without further investigation. These linear relationships between at least some variables indicates that there is a chance the variables are not providing independent information. This means we may be able to reduce the dimensionality of the data without losing too much of the total variation. Principle component analysis (PCA) will be carried out on the data to reduce it's dimensionality.
+
+```{r, echo=FALSE, fig.cap="A caption"}
+pairs(gpu_performance_12[,-6], col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1))
+```
+
+
+An unsupervised learning technique can be used to group data like this into clusters. K-means clustering was selected since the clusters look to be highly spherical, which k-means are known to be able to differentiate well.
 
 In order to search for an optimal value for k (number of clusters), the k-values 1 to 15 were plugged into the kmeans function and the within cluster sum of squares (SSw) recorded. The k values were then plotted against the SSw values, producing the plot below. A slight kink can be seen at k=2 and k=4, and so it was inferred that these could be good k-values.
 
-```{r}
+```{r kmeans grid, echo=FALSE}
 #set seed to make analysis reproducable
 set.seed(42)
 ## Set the maximum value of K:
@@ -192,7 +206,9 @@ plot(1:Kmax, SS_W, type="l", xlab="K", ylab="SS_W")
 
 Since the data is multidimensional, it is difficult to plot the data and visualise the clustering. To get around this issue, further, principle component analysis was carried out on the data and the first 2 principle components selected, which allows an overview the data to be plotted in two dimensions. The k-means clustering was then highlighted in the plot using different colours and symbols for each cluster. Both k=2 clustering and k=4 clustering can be seen below. The data clearly separates very well into two obvious clusters. This combined with the bimodal histograms points to the possibility that the GPU cards used by the virtual machines are all one of two models, and the clustering is grouping these two models. This could be useful if one model can be identified as performing better than the other at this particular task, as this would aid the creation of a more optimised architecture for future similar tasks. The performance of these two clusters is assessed below.
 
-```{r}
+```{r k2, echo=FALSE, fig.cap='k=2 clustering of GPU performance data in space of first two PCs'}
+#kmeans function with K=2 as identified by above plot
+km_2 = kmeans(gpu_performance_12[,-6], 2, iter.max=50, nstart=20)
 #principle component analysis of gpu performance on level 12 renders
 pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
 ## Plot the first PC against the second PC using the cluster allocation to set
@@ -203,8 +219,10 @@ pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
   ggtitle('k=2 clustering of GPU performance data in space of first two PCs'))
 ```
 
-```{r}
-#k=4
+```{r k4, echo=FALSE, fig.cap='k=4 clustering of GPU performance data in space of first two PCs'}
+#kmeans function with K=2 as identified by above plot
+km_4 = kmeans(gpu_performance_12[,-6], 4, iter.max=50, nstart=20)
+#k=4 clustering
 (km4_pc_plot = ggplot(gpu_performance_12, aes(x=pca_gpu_perf$x[,1], y=pca_gpu_perf$x[,2])) +
   geom_point(colour=km_4$cluster, shape=km_4$cluster, size=2.5) + xlab('First PC') + ylab('Second PC') + 
   ggtitle('k=4 clustering of GPU performance data in space of first two PCs'))
@@ -214,14 +232,14 @@ pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
 When k=2 the clusters appear to be primarily separated by the first principle component. This component can be roughly interpreted from the eigonvectors shown in the table below. The coefficients for GPU core utilisation, GPU memory utilisation, total render time and render time are all similarly large in magnitude and negative, with the other variables coming close to zero. This suggests the first principle component is a negatively correlated measure of the size of these variables. This means that on the k=2 plot the observations in the cluster on the right with larger PC1 values are likely to have smaller values of the variables mentioned. Smaller values of all of these variables are desirable and so the cluster on the right of the k=2 plot represents more desirable GPUs for the task.
 The coefficients of the second principle component appear to show that it is dominated by power draw and temperature, with much larger coefficients for these variables. The large positive coefficients for these variables suggests that PC2 is a positively correlated measure of the size of the gpu power draw and gpu temperature. Since it is desirable for powerdraw and temperature values to be low for GPUs, a low PC2 score is desirable. If using the k=4 clustering, the blue cluster in the bottom right of the plot above can be identified as containing the overall best performers, with relatively low temperature and power draw (PC2) and relatively low render time and memory utilisation (PC1).
 
-```{r}
+```{r pca_rot, echo=FALSE}
 pca_gpu_perf$rotation[,c(1:2)]
 ```
 
 
 The table below shows the cumulative proportion of the variance that is explained by each principal component. The table shows that the first 2 principle components account for 63% of the total variance in the data. This is ok as a low dimensional method of easily visualising the clusters, but there is a significant proportion of variance missing.
 
-```{r}
+```{r pca_summary, echo=FALSE}
 #summary, shows proportion of variance explained
 summary(pca_gpu_perf)
 ```
@@ -229,29 +247,29 @@ summary(pca_gpu_perf)
 The clustering was further visualised using a scatterplot matrix to view how the GPUs are clustered across variable pairs. The two clusters identified by the k-means clustering on the `gpu_performance_12` dataset were highlighted in different colours to show how the clusters are represented across pairs of variables. There is a much more visible separation between the clusters in k=2 for most of the pairs. The scatterplot matrix confirms the suspicions discussed above that the clustering using k=2 doesn't separate well on a lot of pairs containing power draw and temperature. The k=4 clustering seems to do better with these variables as expected from the PCA plot. There is quite a lot of overlap between clusters involving uploading speed for both k=2 and k=4, suggesting that the upload speed is not well correlated with the other features that the k-means algorithm has clustered on.
 
 
-#```{r}
+```{r scatter_km2, echo=FALSE, fig.cap='scatterplot matrix with k=2 clustering'}
 #Creating scatterplot matrix with k-means clusters used to colour groups
 #clustered on the full dataset.
-#pairs(gpu_performance_12[,-6], col = alpha(km_2$cluster, 0.1))
-#```
+pairs(gpu_performance_12[,-6], col = alpha(km_2$cluster, 0.1))
+```
 
-#```{r}
+```{r scatter_km4, echo=FALSE, fig.cap='scatterplot matrix with k=4 clustering'}
 #Creating scatterplot matrix with k-means clusters used to colour groups
 #clustered on the full dataset.
-#pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
-#```
+pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
+```
 
-One issue with using the rendering times to interpret performance is that the variation in the mean render durations of each GPU serial number may be caused by the sample of tiles that happened to be rendered by that GPU. If the GPU is rendering tiles in close proximity to each other, which all happen to be located in an area of the visualisation with high detail, then this gpu may appear to be slow in comparison to other gpus purely due to this.
-To tackle and clarify the magnitude of this issue, a heatmap was created based on rendering time (`TotalRenderIncTil`) and tile coordinates to visualise render difficulty accross the city. A map of Newcastle can be roughly made out just from these render durations, which clearly shows that more detailed areas such as streets are taking longer to render than open spaces and other less detailed areas. To find out how the tiles rendered by each GPU are distributed, 3 random GPU sereal numbers were selected and the tiles they rendered highlighted on the heatmap. The blue, green and yellow tiles are renderings carried out by three different GPUs. The distribution of each colour seems to be fairly random accross the whole map, and is assumed as random. Given the assumption that the distribution of tiles between GPUs is random, the issue mentioned above is much lessened, and comparison between rendering times of different GPUs is valid given the average sample size of ~64 random tiles per GPU.
-To note, the white tiles seem to be anomalies in the data where render time is zero or almost zero. This is something to be investigated further.
+One issue with using the rendering times to interpret performance is that much of the variation in the mean render durations of each GPU serial number may be caused by the sample of tiles that happened to be rendered by that GPU. If the GPU is rendering tiles in close proximity to each other, which all happen to be located in an area of the visualisation with high detail, then this gpu may appear to be slow in comparison to other GPUs purely due to this.
+To clarify the magnitude of this issue, a heatmap was created based on rendering time (`TotalRenderIncTil`) and tile coordinates to visualise render difficulty across the city. A map of Newcastle can be roughly made out just from these render durations, which clearly shows that more detailed areas such as streets are taking longer to render than open spaces and other less detailed areas. To find out how the tiles rendered by each GPU are distributed, 3 random GPU serial numbers were selected and the tiles they rendered highlighted on the heatmap. The blue, green and yellow dots are tile renderings carried out by three different GPUs. The distribution of each colour seems to be fairly random across the whole map, and is so is assumed as random for the purpose of analysis. Given the assumption that the distribution of tiles between GPUs is random, the issue mentioned above is much lessened, and comparison between rendering times of different GPUs is valid given the average sample size of ~64 random tiles per GPU.
+To note, the white tiles seem to be anomalies in the data where render time is zero or almost zero. This is something that needs to be investigated further but is outside of the scope of this report.
 
-The rendering difficulty across the map of the city was also investigated to identify areas that the GPUs were taking longer to render. A heatmap was produced using the total render value (plus tiling for true total time) of each tile co-ordinate.  This points to the fact that much of  It is difficult to completely separate
+```{r, echo=FALSE, fig.cap="A caption", out.width = '89%', fig.align='center'}
+knitr::include_graphics(here("Terapixel Project/graphs/heatmap2.png"))
+```
 
-#```{r, echo=FALSE, fig.cap="A caption", out.width = '100%'}
-#knitr::include_graphics("graphs/heatmap2.png")
-#```
+# Evaluation
 
-# Investigate perpetual slow cards
+
 
 # References
 http://www.gigamacro.com/worlds-first-terapixel-macro-image/
