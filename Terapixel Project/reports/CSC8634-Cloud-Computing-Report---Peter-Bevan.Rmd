@@ -204,7 +204,7 @@ for(K in 1:Kmax) {
 plot(1:Kmax, SS_W, type="l", xlab="K", ylab="SS_W")
 ```
 
-Since the data is multidimensional, it is difficult to plot the data and visualise the clustering. To get around this issue, further, principle component analysis was carried out on the data and the first 2 principle components selected, which allows an overview the data to be plotted in two dimensions. The k-means clustering was then highlighted in the plot using different colours and symbols for each cluster. Both k=2 clustering and k=4 clustering can be seen below. The data clearly separates very well into two obvious clusters. This combined with the bimodal histograms points to the possibility that the GPU cards used by the virtual machines are all one of two models, and the clustering is grouping these two models. This could be useful if one model can be identified as performing better than the other at this particular task, as this would aid the creation of a more optimised architecture for future similar tasks. The performance of these two clusters is assessed below.
+Since the data is multidimensional, it is difficult to plot the data and visualise the clustering. To get around this issue, principle component analysis was carried out on the data and the first 2 principle components selected, which allows an overview the data to be plotted in two dimensions. The k-means clustering was then highlighted in the plot using different colours and symbols for each cluster. Both k=2 clustering and k=4 clustering can be seen below. The data clearly separates very well into two obvious clusters. This combined with the bimodal histograms points to the possibility that the GPU cards used by the virtual machines are all one of two models, and the clustering is grouping these two models. This could be useful if one model can be identified as performing better than the other at this particular task, as this would aid the creation of a more optimised architecture for future similar tasks.
 
 ```{r k2, echo=FALSE, fig.cap='k=2 clustering of GPU performance data in space of first two PCs'}
 #kmeans function with K=2 as identified by above plot
@@ -230,6 +230,7 @@ km_4 = kmeans(gpu_performance_12[,-6], 4, iter.max=50, nstart=20)
 
 
 When k=2 the clusters appear to be primarily separated by the first principle component. This component can be roughly interpreted from the eigonvectors shown in the table below. The coefficients for GPU core utilisation, GPU memory utilisation, total render time and render time are all similarly large in magnitude and negative, with the other variables coming close to zero. This suggests the first principle component is a negatively correlated measure of the size of these variables. This means that on the k=2 plot the observations in the cluster on the right with larger PC1 values are likely to have smaller values of the variables mentioned. Smaller values of all of these variables are desirable and so the cluster on the right of the k=2 plot represents more desirable GPUs for the task.
+
 The coefficients of the second principle component appear to show that it is dominated by power draw and temperature, with much larger coefficients for these variables. The large positive coefficients for these variables suggests that PC2 is a positively correlated measure of the size of the gpu power draw and gpu temperature. Since it is desirable for powerdraw and temperature values to be low for GPUs, a low PC2 score is desirable. If using the k=4 clustering, the blue cluster in the bottom right of the plot above can be identified as containing the overall best performers, with relatively low temperature and power draw (PC2) and relatively low render time and memory utilisation (PC1).
 
 ```{r pca_rot, echo=FALSE}
@@ -244,7 +245,27 @@ The table below shows the cumulative proportion of the variance that is explaine
 summary(pca_gpu_perf)
 ```
 
-The clustering was further visualised using a scatterplot matrix to view how the GPUs are clustered across variable pairs. The two clusters identified by the k-means clustering on the `gpu_performance_12` dataset were highlighted in different colours to show how the clusters are represented across pairs of variables. There is a much more visible separation between the clusters in k=2 for most of the pairs. The scatterplot matrix confirms the suspicions discussed above that the clustering using k=2 doesn't separate well on a lot of pairs containing power draw and temperature. The k=4 clustering seems to do better with these variables as expected from the PCA plot. There is quite a lot of overlap between clusters involving uploading speed for both k=2 and k=4, suggesting that the upload speed is not well correlated with the other features that the k-means algorithm has clustered on.
+The clustering was further visualised using a scatterplot matrix to view how the GPUs are clustered across variable pairs. The two clusters identified by the k-means clustering on the `gpu_performance_12` dataset were highlighted in different colours to show how the clusters are represented across pairs of variables. There is a much more visible separation between the clusters in k=2 for most of the pairs. The scatterplot matrix confirms the suspicions discussed above that the clustering using k=2 doesn't separate well on a lot of pairs containing power draw and temperature. The k=4 clustering seems to do better with these variables as expected from the PCA plot. There is quite a lot of overlap between clusters involving uploading speed for both k=2 and k=4, suggesting that the upload speed is not well correlated with the other features that the k-means algorithm has clustered on. In order to focus the analysis, k=2 was chosen to move forward with due to the obvious clusters that it highlights. If further selection of GPU serial numbers was needed, the k=4 clustering could be revisited.
+
+To evaluate the success of the clustering, the summary statistics of each of the 2 clusters of GPUs was laid out and cross compared (seen below). The red cluster had more desireable mean values for: power draw, GPU core(s) utilisation, GPU memory utilisation and total render duration for all event types. The only feature that the red cluster had a less desirable mean value for is GPU temperature (higher by around 0.8 degrees C). The temperature only matters so far as it affects the performance and power draw of the GPUs, and so in this case where these GPUs are performing better on all other metrics it is not a big issue. The fact that on average this cluster of GPUs is rendering quicker with lower power draw is a strong indicator that these GPUs are more effective than the other cluster at the task at hand.
+
+```{r best k2, include=FALSE}
+#best gpus for k=2 clustering
+bestgpu_km_2 = gpu_performance_12[names(km_2$cluster[km_2$cluster==2]), ]
+worstgpu_km_2 = gpu_performance_12[names(km_2$cluster[km_2$cluster==1]), ]
+```
+
+The summary statistics for the cluster of GPUs identified as better performing in k=2 clustering:
+
+```{r km2 best summary, echo=FALSE, fig.cap='best of k=2'}
+summary(bestgpu_km_2)
+```
+
+The summary statistics for the cluster of GPUs identified as worse performing:
+```{r km2 worst summary, echo=FALSE, fig.cap='worst of k=2'}
+summary(worstgpu_km_2)
+```
+
 
 
 ```{r scatter_km2, echo=FALSE, fig.cap='scatterplot matrix with k=2 clustering'}
@@ -268,7 +289,12 @@ knitr::include_graphics(here("Terapixel Project/graphs/heatmap2.png"))
 ```
 
 # Evaluation
+The results presented in this report show that there are two very clear groups within the GPU serial numbers, and there is a conclusively better performing cluster of these two. The serial numbers of the better performing group of GPUs is provided with this code and should be used to identify which models of GPUs they are referring to. This information can be used for GPU selection for similar tasks in future.
+It is suspected from the clustering and bi-modal histograms, that the two groups are two different models/types/brands of GPU, and this should be further looked into by matching serial numbers to models.
 
+Other than GPU selection, or if this is not possible, another previously mentioned method for improving the GPU performance could be to optimise the task in blender (tune tile size etc...).
+
+The wrangled 'gpu_performance` data presented in this analysis could quite quickly and easily be used for anomaly detection to to weed out poorly performing GPUs (by serial number) that slowed down the process. This would be the next step for future iterations of the report but was left out on this occasion.
 
 
 # References

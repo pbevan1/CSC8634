@@ -31,7 +31,9 @@ km_4 = kmeans(gpu_performance_12, 4, iter.max=50, nstart=20)
 
 #examining the structure of the object
 str(km_2)
-km_2$cluster
+
+#best gpus for k=2 clustering
+bestgpu_km_2 = 
 
 ## Plot the first PC against the second PC using the cluster allocation to set
 ## different colours (col) and plotting characters (pch) for each cluster:
@@ -69,10 +71,9 @@ heatmap + geom_tile(data = hostname_sample_1,  width = width, height = height, f
 #clustered on the full dataset.
 pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
 
-
-## Plot the first PC against the second PC using the cluster allocation to set
-## different colours (col) and plotting characters (pch) for each cluster:
-plot(pca_gpu_perf$x[,1], pca_gpu_perf$x[,2], main="Cluster solutions in ISLR data in space of first two PCs", xlab="First PC", ylab="Second PC",
-     col=km_4$cluster, pch=km_4$cluster)
-
 tail(gpu_performance_12[order(gpu_performance_12$mean_TotalRender_IncTil),],10)
+
+#k=4 clustering
+(km4_pc_plot = ggplot(gpu_performance_12, aes(x=pca_gpu_perf$x[,1], y=pca_gpu_perf$x[,2])) +
+    geom_point(colour=1, shape=1, size=2.5) + xlab('First PC') + ylab('Second PC') + 
+    ggtitle('k=4 clustering of GPU performance data in space of first two PCs'))
