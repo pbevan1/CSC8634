@@ -25,7 +25,7 @@ knitr::include_graphics(here("Terapixel Project/graphs/ncl2.png"))
 
 This report documents an exploratory data analysis of application checkpoint and system metric output data collected during the rendering of a 3d terapixel image of the city of Newcastle, UK. A terapixel is defined as 10^12 pixels (1,000,000 megapixels), and so are extremely large images and therefore very computationally costly to produce. A path tracing renderer coupled with a scalable public cloud supercomputing architecture was successfully used to render the terapixel image in under a day using 1024 public cloud GPU nodes. The completed terapixel image is accessible for users to explore the city in 3D with zoomable scales ranging from a complete overview to minute detail.
 
-Since the rendering of such large images is extremely demanding, optimization of the architecture and process is essential for keeping the time frames manageable. Since the rendering is carried out on the public cloud on a pay as you go basis, this optimization also helps to keep costs down, especially if continuous updating of the visualization is to take place. One way to increase the rendering speed is to select the specific GPU cards which perform best for the required task.
+Since the rendering of such large images is extremely demanding, optimization of the architecture and process is essential for keeping the time frames manageable. Since the rendering is carried out on the public cloud on a pay as you go basis, this optimization also helps to keep costs down, especially if continuous updating of the visualization is to take place. One way to increase the rendering speed is to **select the specific GPU cards which perform best for the required task.** This is what this report aims to achieve.
 
 The data collected during the initial rendering can be analysed to view the performance of each type of GPU card in order to decide on the optimal cards for the task, as well as revealing which GPUs seem to be unsuitable for the task. The data can be manipulated to allow easy comparison of GPU performance, followed by dimensionality reduction techniques and clustering to separate the desirable and undesirable GPU cards.
 
@@ -151,7 +151,7 @@ grid.arrange(plt_TotalRender_IncTile, plt_Tiling, plt_SavingConfig, plt_Render, 
 
 The proportion of the total render time spent on each task was visualised in a pie chart to get a better understanding of what event types the GPUs are spending most time completing. This knowledge could be very useful when looking at speeding up the whole process as it may indicate an area that has most room for improvement. Rendering took up the vast majority of the total task runtimes, as shown in the pie chart, with just under 95% of the total runtime. Speeding up the rendering time by just a few percent would have a dramatic effect on the overall runtime of the process. On the contrary, the configuration overhead is so small (0.01% of total runtime) that it is not visible on the pie chart and so it's probably not worth spending too much time attempting to speed up this process (benefits likely small). A colourblind friendly palette was used, based on the codes provided by M.Okabe and K.Ito from Tokyo University in 2002. These colours have contrasting luminance and so are more easily distinguished by colourblind people than the default ggplot colours.
 
-```{r pie, echo=FALSE, fig.cap='Proportions of task runtimes per event'}
+```{r pie, echo=FALSE, fig.cap='Proportions of task runtimes per event', out.width='65%', fig.align='center'}
 ggplot(data = Runtime_Totals[c(1:4),], aes(x = "", y = Totals, fill = Event)) + 
   geom_bar(width=1, size=1, stat = "identity", color="#D55E00") +
   labs(x = NULL, y = NULL, title = 'proportions of task runtimes per event') +
@@ -168,24 +168,39 @@ ggplot(data = Runtime_Totals[c(1:4),], aes(x = "", y = Totals, fill = Event)) +
 
 The histogram for mean power draw of the GPUs looks to have a roughly normal distribution with almost all observations falling between 80W and 100W, with a very small number of outliers above 100W. Mean temperature of the GPUs looks to have a right skewed normal distribution. Both mean utilisation of GPU cores and mean utilisation of GPU memory exhibit a similar bi-modal distribution as mentioned above, with similar numbers of GPUs falling into distributions around the two modes. One possible explanation is that some of the GPUs, for whatever reason, are utilising more of their memory and core(s), and this group as a result are producing faster rendering. In this case, one possible solution could be experimenting with optimisation in blender to try and get consistent/higher GPU utilisation. One possible tweak that could be made is adjusting the tile size to see if performance can be enhanced.
 
-```{r gpugrid, echo=FALSE, message=FALSE, fig.cap='GPU metric histograms'}
+```{r gpugrid, echo=FALSE, message=FALSE, fig.cap='GPU metric histograms', out.width='75%', fig.align='center'}
 grid.arrange(plt_power, plt_temp, plt_utilPerc, plt_memUtilPerc, nrow = 2)
 ```
 
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 The correlation matrix below was computed to visualise the correlation between pairs of variables in the newly constructed `gpu_performance` datasets. Since there are so many overlapping points, the transparency of the points was increased to highlight areas of overlapping points and better highlight trends. It's easy to notice even in these pairwise plots there is often distinct groups of GPUs.
-Obvious positive linear relationships can be seen between `mean_gpuMemUtilPerc` and `mean_gpuUtilPerc` as well as between `mean_TotalRender` and `mean_Render`. There are also other potential linear relationships between other variables but it is harder to tell without further investigation. These linear relationships between at least some variables indicates that there is a chance the variables are not providing independent information. This means we may be able to reduce the dimensionality of the data without losing too much of the total variation. Principle component analysis (PCA) will be carried out on the data to reduce it's dimensionality.
+Obvious positive linear relationships can be seen between `mean_gpuMemUtilPerc` and `mean_gpuUtilPerc` as well as between `mean_TotalRender` and `mean_Render`. There are also other potential linear relationships between other variables but it is harder to tell without further investigation. These linear relationships between at least some variables indicates that there is a chance the variables are not providing independent information. This means we may be able to reduce the dimensionality of the data using a technique such as principle component analysis (PCA) without losing too much of the total variation.
 
-```{r, echo=FALSE, fig.cap="A caption"}
+```{r, echo=FALSE, fig.cap="scatterplot matrix gpu performance", out.width='55%', fig.align='center'}
 pairs(gpu_performance_12[,-6], col = rgb(red = 0, green = 0, blue = 0, alpha = 0.1))
 ```
 
-
-An unsupervised learning technique can be used to group data like this into clusters. K-means clustering was selected since the clusters look to be highly spherical, which k-means are known to be able to differentiate well.
+An unsupervised learning technique can be used to group data like this into clusters. K-means clustering was selected since the clusters look to be highly spherical, which k-means is known to be able to differentiate well.
 
 In order to search for an optimal value for k (number of clusters), the k-values 1 to 15 were plugged into the kmeans function and the within cluster sum of squares (SSw) recorded. The k values were then plotted against the SSw values, producing the plot below. A slight kink can be seen at k=2 and k=4, and so it was inferred that these could be good k-values.
 
-```{r kmeans grid, echo=FALSE}
+```{r kmeans grid, echo=FALSE, out.width='55%', fig.align='center'}
 #set seed to make analysis reproducable
 set.seed(42)
 ## Set the maximum value of K:
@@ -206,20 +221,20 @@ plot(1:Kmax, SS_W, type="l", xlab="K", ylab="SS_W")
 
 Since the data is multidimensional, it is difficult to plot the data and visualise the clustering. To get around this issue, principle component analysis was carried out on the data and the first 2 principle components selected, which allows an overview the data to be plotted in two dimensions. The k-means clustering was then highlighted in the plot using different colours and symbols for each cluster. Both k=2 clustering and k=4 clustering can be seen below. The data clearly separates very well into two obvious clusters. This combined with the bimodal histograms points to the possibility that the GPU cards used by the virtual machines are all one of two models, and the clustering is grouping these two models. This could be useful if one model can be identified as performing better than the other at this particular task, as this would aid the creation of a more optimised architecture for future similar tasks.
 
-```{r k2, echo=FALSE, fig.cap='k=2 clustering of GPU performance data in space of first two PCs'}
+```{r k2, echo=FALSE, fig.cap='k=2 clustering of GPU performance data in space of first two PCs', out.width='59%', fig.align='center'}
 #kmeans function with K=2 as identified by above plot
 km_2 = kmeans(gpu_performance_12[,-6], 2, iter.max=50, nstart=20)
 #principle component analysis of gpu performance on level 12 renders
 pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
 ## Plot the first PC against the second PC using the cluster allocation to set
-## different colours (col) and plotting characters (pch) for each cluster:
+## different colours and plotting characters for each cluster:
 #k=2
 (km2_pc_plot = ggplot(gpu_performance_12, aes(x=pca_gpu_perf$x[,1], y=pca_gpu_perf$x[,2])) +
   geom_point(colour=km_2$cluster, shape=km_2$cluster, size=2.5) + xlab('First PC') + ylab('Second PC') + 
   ggtitle('k=2 clustering of GPU performance data in space of first two PCs'))
 ```
 
-```{r k4, echo=FALSE, fig.cap='k=4 clustering of GPU performance data in space of first two PCs'}
+```{r k4, echo=FALSE, fig.cap='k=4 clustering of GPU performance data in space of first two PCs', out.width='59%', fig.align='center'}
 #kmeans function with K=2 as identified by above plot
 km_4 = kmeans(gpu_performance_12[,-6], 4, iter.max=50, nstart=20)
 #k=4 clustering
@@ -228,6 +243,7 @@ km_4 = kmeans(gpu_performance_12[,-6], 4, iter.max=50, nstart=20)
   ggtitle('k=4 clustering of GPU performance data in space of first two PCs'))
 ```
 
+\
 
 When k=2 the clusters appear to be primarily separated by the first principle component. This component can be roughly interpreted from the eigonvectors shown in the table below. The coefficients for GPU core utilisation, GPU memory utilisation, total render time and render time are all similarly large in magnitude and negative, with the other variables coming close to zero. This suggests the first principle component is a negatively correlated measure of the size of these variables. This means that on the k=2 plot the observations in the cluster on the right with larger PC1 values are likely to have smaller values of the variables mentioned. Smaller values of all of these variables are desirable and so the cluster on the right of the k=2 plot represents more desirable GPUs for the task.
 
@@ -247,6 +263,34 @@ summary(pca_gpu_perf)
 
 The clustering was further visualised using a scatterplot matrix to view how the GPUs are clustered across variable pairs. The two clusters identified by the k-means clustering on the `gpu_performance_12` dataset were highlighted in different colours to show how the clusters are represented across pairs of variables. There is a much more visible separation between the clusters in k=2 for most of the pairs. The scatterplot matrix confirms the suspicions discussed above that the clustering using k=2 doesn't separate well on a lot of pairs containing power draw and temperature. The k=4 clustering seems to do better with these variables as expected from the PCA plot. There is quite a lot of overlap between clusters involving uploading speed for both k=2 and k=4, suggesting that the upload speed is not well correlated with the other features that the k-means algorithm has clustered on. In order to focus the analysis, k=2 was chosen to move forward with due to the obvious clusters that it highlights. If further selection of GPU serial numbers was needed, the k=4 clustering could be revisited.
 
+```{r scatter_km2, echo=FALSE, fig.cap='scatterplot matrix with k=2 clustering', out.width='65%', fig.align='center'}
+#Creating scatterplot matrix with k-means clusters used to colour groups
+#clustered on the full dataset.
+pairs(gpu_performance_12[,-6], col = alpha(km_2$cluster, 0.1))
+```
+
+```{r scatter_km4, echo=FALSE, fig.cap='scatterplot matrix with k=4 clustering', out.width='65%', fig.align='center'}
+#Creating scatterplot matrix with k-means clusters used to colour groups
+#clustered on the full dataset.
+pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
+```
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+
+
 To evaluate the success of the clustering, the summary statistics of each of the 2 clusters of GPUs was laid out and cross compared (seen below). The red cluster had more desireable mean values for: power draw, GPU core(s) utilisation, GPU memory utilisation and total render duration for all event types. The only feature that the red cluster had a less desirable mean value for is GPU temperature (higher by around 0.8 degrees C). The temperature only matters so far as it affects the performance and power draw of the GPUs, and so in this case where these GPUs are performing better on all other metrics it is not a big issue. The fact that on average this cluster of GPUs is rendering quicker with lower power draw is a strong indicator that these GPUs are more effective than the other cluster at the task at hand.
 
 ```{r best k2, include=FALSE}
@@ -255,49 +299,42 @@ bestgpu_km_2 = gpu_performance_12[names(km_2$cluster[km_2$cluster==2]), ]
 worstgpu_km_2 = gpu_performance_12[names(km_2$cluster[km_2$cluster==1]), ]
 ```
 
-The summary statistics for the cluster of GPUs identified as better performing in k=2 clustering:
+**The summary statistics for the cluster of GPUs identified as better performing in k=2 clustering (red):**
 
 ```{r km2 best summary, echo=FALSE, fig.cap='best of k=2'}
 summary(bestgpu_km_2)
 ```
+\
 
-The summary statistics for the cluster of GPUs identified as worse performing:
+**The summary statistics for the cluster of GPUs identified as worse performing in k=2 clustering (black):**
 ```{r km2 worst summary, echo=FALSE, fig.cap='worst of k=2'}
 summary(worstgpu_km_2)
 ```
+\
 
-
-
-```{r scatter_km2, echo=FALSE, fig.cap='scatterplot matrix with k=2 clustering'}
-#Creating scatterplot matrix with k-means clusters used to colour groups
-#clustered on the full dataset.
-pairs(gpu_performance_12[,-6], col = alpha(km_2$cluster, 0.1))
-```
-
-```{r scatter_km4, echo=FALSE, fig.cap='scatterplot matrix with k=4 clustering'}
-#Creating scatterplot matrix with k-means clusters used to colour groups
-#clustered on the full dataset.
-pairs(gpu_performance_12[,-6], col = alpha(km_4$cluster, 0.1))
-```
 
 One issue with using the rendering times to interpret performance is that much of the variation in the mean render durations of each GPU serial number may be caused by the sample of tiles that happened to be rendered by that GPU. If the GPU is rendering tiles in close proximity to each other, which all happen to be located in an area of the visualisation with high detail, then this gpu may appear to be slow in comparison to other GPUs purely due to this.
 To clarify the magnitude of this issue, a heatmap was created based on rendering time (`TotalRenderIncTil`) and tile coordinates to visualise render difficulty across the city. A map of Newcastle can be roughly made out just from these render durations, which clearly shows that more detailed areas such as streets are taking longer to render than open spaces and other less detailed areas. To find out how the tiles rendered by each GPU are distributed, 3 random GPU serial numbers were selected and the tiles they rendered highlighted on the heatmap. The blue, green and yellow dots are tile renderings carried out by three different GPUs. The distribution of each colour seems to be fairly random across the whole map, and is so is assumed as random for the purpose of analysis. Given the assumption that the distribution of tiles between GPUs is random, the issue mentioned above is much lessened, and comparison between rendering times of different GPUs is valid given the average sample size of ~64 random tiles per GPU.
 To note, the white tiles seem to be anomalies in the data where render time is zero or almost zero. This is something that needs to be investigated further but is outside of the scope of this report.
 
-```{r, echo=FALSE, fig.cap="A caption", out.width = '89%', fig.align='center'}
+```{r, echo=FALSE, fig.cap="render duration heatmap (level 12)", out.width = '91%', fig.align='center'}
 knitr::include_graphics(here("Terapixel Project/graphs/heatmap2.png"))
 ```
 
+\
+
 # Evaluation
-The results presented in this report show that there are two very clear groups within the GPU serial numbers, and there is a conclusively better performing cluster of these two. The serial numbers of the better performing group of GPUs is provided with this code and should be used to identify which models of GPUs they are referring to. This information can be used for GPU selection for similar tasks in future.
+The results presented in this report show that there are two very clear groups within the GPU serial numbers, and there is a conclusively better performing cluster of these two (`bestgpu_km_2`). The serial numbers of the better performing group of GPUs is provided with this code and should be used to identify which models of GPUs they are referring to. This information can be used for GPU selection for similar tasks in future.
+
 It is suspected from the clustering and bi-modal histograms, that the two groups are two different models/types/brands of GPU, and this should be further looked into by matching serial numbers to models.
 
 Other than GPU selection, or if this is not possible, another previously mentioned method for improving the GPU performance could be to optimise the task in blender (tune tile size etc...).
 
-The wrangled 'gpu_performance` data presented in this analysis could quite quickly and easily be used for anomaly detection to to weed out poorly performing GPUs (by serial number) that slowed down the process. This would be the next step for future iterations of the report but was left out on this occasion.
+The wrangled 'gpu_performance` data presented in this analysis could quite quickly and easily be used for anomaly detection to weed out poorly performing GPUs (by serial number) that slowed down the process. This would be the next step for future iterations of the report but was left out on this occasion.
 
 
 # References
+
 http://www.gigamacro.com/worlds-first-terapixel-macro-image/
 
 hoefler scientific benchmarking
