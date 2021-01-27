@@ -222,6 +222,7 @@ plot(1:Kmax, SS_W, type="l", xlab="K", ylab="SS_W")
 Since the data is multidimensional, it is difficult to plot the data and visualise the clustering. To get around this issue, principle component analysis was carried out on the data and the first 2 principle components selected, which allows an overview the data to be plotted in two dimensions. The k-means clustering was then highlighted in the plot using different colours and symbols for each cluster. Both k=2 clustering and k=4 clustering can be seen below. The data clearly separates very well into two obvious clusters. This combined with the bimodal histograms points to the possibility that the GPU cards used by the virtual machines are all one of two models, and the clustering is grouping these two models. This could be useful if one model can be identified as performing better than the other at this particular task, as this would aid the creation of a more optimised architecture for future similar tasks.
 
 ```{r k2, echo=FALSE, fig.cap='k=2 clustering of GPU performance data in space of first two PCs', out.width='59%', fig.align='center'}
+set.seed(42)
 #kmeans function with K=2 as identified by above plot
 km_2 = kmeans(gpu_performance_12[,-6], 2, iter.max=50, nstart=20)
 #principle component analysis of gpu performance on level 12 renders
@@ -235,6 +236,7 @@ pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
 ```
 
 ```{r k4, echo=FALSE, fig.cap='k=4 clustering of GPU performance data in space of first two PCs', out.width='59%', fig.align='center'}
+set.seed(42)
 #kmeans function with K=2 as identified by above plot
 km_4 = kmeans(gpu_performance_12[,-6], 4, iter.max=50, nstart=20)
 #k=4 clustering

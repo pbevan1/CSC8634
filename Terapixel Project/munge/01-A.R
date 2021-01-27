@@ -82,4 +82,12 @@ Runtime_Totals$Event = c('Tiling (2.23%)', 'Saving_Config (0.01%)', 'Render (94.
 cbbPalette = c("#009E73", "#56B4E9", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", '#000000', "#E69F00")
 
 #defining gpu_performance without TotalRender for use in shiny dashboard
-gpu_performance_12_2 = gpu_performance_12[,-6]
+pca_gpu_perf = prcomp(gpu_performance_12[,-6], scale=TRUE)
+pc1 = pca_gpu_perf$x[,1]
+pc2 = pca_gpu_perf$x[,2]
+gpu_performance_12_2 = cbind(gpu_performance_12[,-6], pc1, pc2)
+colnames(gpu_performance_12_2)[c(10:11)] = c('Principle_Component_1', 'Principle_Component_2')
+
+#creating dataframe to sample hostnames from for shiny app
+hostname_list = gpu_performance[,1]
+
