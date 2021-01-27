@@ -1,5 +1,5 @@
 
-#taking three random samples based on GPU serial number
+#taking three random samples based on GPU serial number for use identifying tiles in heatmap
 hostname_sample_1 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
 hostname_sample_2 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
 hostname_sample_3 = Runtimes_12[Runtimes_12$hostname==sample(Runtimes_12$hostname,1),]
@@ -16,7 +16,3 @@ heatmap + geom_tile(data = hostname_sample_1,  width = width, height = height, f
   geom_tile(data = hostname_sample_2,  width = width, height = height, fill = "green") + 
   geom_tile(data = hostname_sample_3,  width = width, height = height, fill = "yellow")
 
-bymedian = with(Runtimes_12, reorder(hostname, Tiling, median))
-#collection of outliers at ~25s, wonder why?
-(bp_runtime = ggplot(Runtimes_12, aes(x=bymedian, y=Tiling, alpha=0.1)) + 
-  geom_boxplot(outlier.size=0.1, alpha=0.3)) # + scale_color_manual(values=c("black", "red")))

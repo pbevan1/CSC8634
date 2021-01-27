@@ -1,6 +1,6 @@
 ---
 title: "CSC8634 Cloud Computing Report"
-author: "Peter Bevan"
+author: "Peter Bevan (200731331)"
 date: "18/01/2021"
 output: pdf_document
 ---
@@ -101,6 +101,17 @@ head(gpu_performance_12)
 To conclude the data munging, runtime totals were calculated to show the sum total runtime of each gpu for each event type, which allows the dominance of each event type to be visualised.
 
 # Modeling
+
+To start off with, a boxplot was created to visualise the total render time distribution accross each gpu serial number. unfortunately due to there being too many entries the median lines aren't visible, but the plot still provides useful information. The vast majoprity of tiles took between 25 and 75 seconds to totally render(includes all event types within the total render task). There seems to be a noticeable increase in render times at roughly the half way point along the x axis. Another interesting feature that the visualisation uncovers is the significant collection of outliers at ~25s. It's not clear what is causing this, and this could be a possible avenue for further analysis.
+The next step is to aggregate the data and analyse the distributions for each variable.
+```{r}
+#creating boxplot render duration distribution for each hostname/gpu
+bymedian = with(Runtimes_12, reorder(hostname, TotalRender_IncTil, median)) #ordering by median for more useful visual
+#collection of outliers at ~25s, wonder why?
+(bp_runtime = ggplot(Runtimes_12, aes(x=bymedian, y=TotalRender_IncTil, alpha=0.1)) + 
+  geom_boxplot(outlier.size=0.1, alpha=0.3, color='#56B4E9'))
+```
+
 
 ```{r Histograms, echo=FALSE, message=FALSE}
 plt_power = ggplot(gpu_performance_12, aes(x=mean_powerDrawWatt)) + 
@@ -332,7 +343,7 @@ It is suspected from the clustering and bi-modal histograms, that the two groups
 
 Other than GPU selection, or if this is not possible, another previously mentioned method for improving the GPU performance could be to optimise the task in blender (tune tile size etc...).
 
-The wrangled 'gpu_performance` data presented in this analysis could quite quickly and easily be used for anomaly detection to weed out poorly performing GPUs (by serial number) that slowed down the process. This would be the next step for future iterations of the report but was left out on this occasion.
+The wrangled 'gpu_performance` data presented in this analysis could quite quickly and easily be used for anomaly detection to weed out poorly performing GPUs (by serial number) that slowed down the process. This would be the next step for future iterations of the report but was left out on this occasion. Another possible route of further inquiry is to identify the reason for the anomaly render times showing as roughly 0 seconds, as well as the collection of outlier tiles that took roughly 25 seconds to render.
 
 
 # References

@@ -79,6 +79,7 @@ Runtime_Totals = tibble::rownames_to_column(Runtime_Totals, "Event")
 Runtime_Totals = Runtime_Totals %>% mutate(perc=percent(Totals/sum(Totals)))
 Runtime_Totals$Event = c('Tiling (2.23%)', 'Saving_Config (0.01%)', 'Render (94.56%)', 'Uploading (3.20%)')
 
+#defining colourblind palette for use in plots
 cbbPalette = c("#009E73", "#56B4E9", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", '#000000', "#E69F00")
 
 #defining gpu_performance without TotalRender for use in shiny dashboard
