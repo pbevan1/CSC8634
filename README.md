@@ -16,3 +16,5 @@ Report and structured abstract saved in `Terapixel Project\reports` as pdf files
 Code for saved png images used in report is saved in `Terapixel Project\src\eda.R`
 
 The shiny dashboard can be located at `Terapixel Project\app.R`. Run all code in file to launch app. The dashboard is best viewed in full screen to ensure the plots are sized correctly.
+
+Git log is available at `Terapixel Project\logs\[200731331]GitLogFile.txt`

@@ -1,0 +1,113 @@
+commit 9e7ba6e17bf44c517d7f5d827720fdfaf3622135
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Thu Jan 28 18:35:19 2021 +0000
+
+    Finising off report and structured abstract
+
+commit 938dcfec1120f1337a6d5a38a2e9ac79cbbf3658
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Wed Jan 27 18:30:00 2021 +0000
+
+    Updating report
+
+commit 1e6027d84a90addc8c92241734ebaacb2cbe0b1e
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Wed Jan 27 17:51:32 2021 +0000
+
+    move app
+
+commit 6ee0aad6b9c99a3bf9e6a5cb6a200902c20603a3
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Wed Jan 27 17:37:34 2021 +0000
+
+    Finishing shiny dashboard
+
+commit 321757ac3e739d8118fe6c27cec8cafbb5318ad4
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Tue Jan 26 17:52:20 2021 +0000
+
+    Initial shiny app
+
+commit 45da19cc439d45e49ba36d90d8b4000827d095a9
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Tue Jan 26 11:12:30 2021 +0000
+
+    tidying eda and finishing report
+
+commit ef54101857777a040bf7181d31a1d06c078f4c3e
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Mon Jan 25 17:50:44 2021 +0000
+
+    Evaluation
+
+commit 9e6f42d1494e7e7475f9ea5534ef41869ba7c3be
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Mon Jan 25 15:38:40 2021 +0000
+
+    Polishing report
+
+commit ad03e233853f1de238f79031bfdeac75bb5a9e0c
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Mon Jan 25 10:45:21 2021 +0000
+
+    Modelling and reports
+
+commit 4576e9f8f87606cb87e61a2b29cec8ff09e25f96
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Thu Jan 21 19:12:16 2021 +0000
+
+    more eda and report writing
+
+commit ccb0789a05d9ae760e610c8e6eadc3c2bb5f892f
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Wed Jan 20 16:09:51 2021 +0000
+
+    Report writing
+
+commit 63f13942cb28eb09de5e7aa783fc8f253c1cecf0
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Wed Jan 20 12:36:05 2021 +0000
+
+    Cache and worked on report
+
+commit 7307219992db6f0e9716aefad699bed86d51a399
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Tue Jan 19 16:04:39 2021 +0000
+
+    Initial Histograms
+
+commit 64ba4a782943c99a58bb365f4710a0a3eec8c026
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Tue Jan 19 14:11:06 2021 +0000
+
+    Making munging more concise
+
+commit d043fa97d435c332f307616e31bc226a695cc059
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Mon Jan 18 17:04:31 2021 +0000
+
+    More munging and set up report
+
+commit b61c32b1d87b2149622d9473b7e119fab730e09b
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Sun Jan 17 14:15:40 2021 +0000
+
+    TotalRender munging
+
+commit 5172833448585cfba54873961ee74ea6ff631fd5
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Sat Jan 16 12:46:05 2021 +0000
+
+    testing git
+
+commit 0f0b4e6b49e0a71042e481bf7ae703642d2ba3aa
+Author: Peter Bevan <peterbevan@hotmail.co.uk>
+Date:   Sat Jan 16 12:39:49 2021 +0000
+
+    Initial Commit
+
+commit 19f871061c322d139ed77669f5e60a9e26ab1d65
+Author: pbevan1 <69802263+pbevan1@users.noreply.github.com>
+Date:   Sat Jan 16 12:36:32 2021 +0000
+
+    Initial commit
