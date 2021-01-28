@@ -91,4 +91,3 @@ colnames(gpu_performance_12_2)[c(10:11)] = c('Principle_Component_1', 'Principle
 
 #creating dataframe to sample hostnames from for shiny app
 hostname_list = gpu_performance[,1]
-

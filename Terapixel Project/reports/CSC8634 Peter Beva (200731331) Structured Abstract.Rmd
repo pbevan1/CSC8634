@@ -1,0 +1,33 @@
+---
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir= normalizePath('..'))
+```
+
+```{r load project, include=FALSE}
+library(ProjectTemplate)
+load.project()
+```
+## CSC8634 Peter Bevan (200731331) Structured Abstract and Key Images
+
+### Context:
+Environmental data was used to create a terapixel visualisation of Newcastle. Cloud supercomputing is already a good solution for completing large rendering tasks, but analysis and optimisation of the architecture is vital to further reduce the costs, timescales and power consumption associated.
+
+### Objective:
+GPU performance is a critical limiting factor in producing compute heavy visualisations. This report sets out to analyse the individual performance of each GPU node used and use this information to suggest performance enhancement solutions.
+
+### Method:
+Data created during a run using 1024 GPU nodes was wrangled and explored using visualisations in R. Mean GPU performance metrics were aggregated by GPU serial number and k-means clustering was applied to separate the 1024 GPUs into higher and lower performing groups.
+
+### Results:
+It was decided to analyse the results based on k=2 clustering given the evidence suggesting two sub-populations of GPUs. The group of 496 best performing GPUs (`bestgpu_km_2`) were shown to score better across the board and it is suspected that this group may be a different model/brand of GPU. The findings that there was unequal performance across the GPUs was used to suggest the implementation of dynamic load balancing models such as those set out by Zhang et al and Chen et al.
+
+### Novelty:
+This analysis provides insight into the GPU performance for public cloud terapixel rendering, and provides opportunity for further insight with an interactive dashboard. Solutions were suggested only for the specific case studied and no new general solutions were suggested in this report, rather referencing previously studied methods.
+
+```{r, echo=FALSE,out.width="49%",fig.cap="Key images",fig.show='hold',fig.align='center'}
+knitr::include_graphics(c(here("Terapixel Project/graphs/heatmap 3.png"),here("Terapixel Project/graphs/k2 clustering.png")))
+``` 
